@@ -3,9 +3,13 @@
 
 A simple [Truchet tile](https://en.wikipedia.org/wiki/Truchet_tiles) generator in Rust, makes nice wallpapers and the like.
 
-`$ truchet-tiles <input tile image> <output width> <output height> <output image path>`
+`$ truchet-tiles <input tile image> <output width> <output height> <output image path> [color mode options]`
 
 Input tile images are mixed with a random color for each tile based on their alpha channel. If the output width/height isn't a multiple of the input tile width/height, it just leaves blank space where it can't fill a whole tile (for now). `tile.png` is an example that can be used for an input tile.
+
+Optionally, you can switch the color mode by providing the `[color mode options]` parameter. Avaliable:
++ `solid <H>,<S>,<V>` - solid HSV color
++ `random` - random colors (default)
 
 ### Example
 

@@ -25,7 +25,21 @@ impl ColorMode {
     }
 }
 
-// usage: truchet-tiles <base tile image> <width> <height> <outputname> (<color-mode> (<HSV color>))
+enum AlphaMode {
+    Normal,
+    Inverse
+}
+
+impl AlphaMode {
+    fn calculate_mix_param(&self, src_alpha: f32) -> f32 {
+        match self {
+            Self::Normal => src_alpha,
+            Self::Inverse => 1.0 - src_alpha
+        }
+    }
+}
+
+// usage: truchet-tiles <base tile image> <width> <height> <outputname> (<color-mode> (<HSV color>)) (<alpha-mode>)
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = std::env::args().skip(1);
     let base_tile = image::open(args.next().ok_or("expected tile image path")?)?.to_rgba();
@@ -43,6 +57,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         ColorMode::Random
     };
+    let alpha_mode = args.next().map(|alpha_mode| match alpha_mode.as_str() {
+        "normal" => AlphaMode::Normal,
+        "inverse" => AlphaMode::Inverse,
+        _ => panic!("unknown alpha mode {}", alpha_mode)
+    }).unwrap_or(AlphaMode::Normal);
  
     let mut output = RgbImage::new(image_width, image_height);
     let tiles = [&base_tile,
@@ -61,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     (px[1] as f32) / 255.0,
                                     (px[2] as f32) / 255.0,
                                     (px[3] as f32) / 255.0);
-                let out_color: Srgb = tile_color.into_linear().mix(&col, 1.0-tile_color.alpha).into();
+                let out_color: Srgb = tile_color.into_linear().mix(&col, alpha_mode.calculate_mix_param(tile_color.alpha)).into();
                 output.put_pixel(index_x*base_tile.width() + x, index_y*base_tile.height() + y,
                     image::Rgb([(out_color.red * 255.0) as u8, (out_color.green * 255.0) as u8, (out_color.blue * 255.0) as u8]));
             }
